@@ -392,7 +392,7 @@ async function buildAndIngestKGFromChunks(docs) {
 
 async function indexDocuments() {
 
-  //optional db ka kuch hai 
+   
   const documentsDir = path.isAbsolute(process.env.DOCUMENTS_DIR || '')
     ? process.env.DOCUMENTS_DIR
     : path.join(process.cwd(), process.env.DOCUMENTS_DIR || 'documents');
@@ -431,7 +431,7 @@ async function indexDocuments() {
     console.log(`Chunked: ${file}`);
   }
 
-  // Optionally extract triples and ingest into Neo4j (set BUILD_KG=false to skip)
+ 
   if ((process.env.BUILD_KG || 'true').toLowerCase() !== 'false') {
     console.log('Starting KG extraction and Neo4j ingestion...');
     await buildAndIngestKGFromChunks(allChunkedDocs);
