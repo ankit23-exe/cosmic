@@ -38,6 +38,7 @@ const Chat: React.FC<ChatProps> = ({
   const hasAutoSentRef = useRef(false);
   const lastResponseRef = useRef<any>(null);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
+  const lastQuestionRef = useRef<string | null>(null);
 
   // Remove the graph-derived "Links:" section from the answer text
   const sanitizeAnswer = (answer: string): string => {
@@ -71,6 +72,7 @@ const Chat: React.FC<ChatProps> = ({
         isUser: true,
         timestamp: new Date(),
       };
+      lastQuestionRef.current = initialQuery;
       setMessages((prev: Message[]) => [...prev, userMessage]);
       setIsTyping(true);
 
@@ -151,6 +153,7 @@ const Chat: React.FC<ChatProps> = ({
 
   setMessages((prev: Message[]) => [...prev, userMessage]);
     const currentInput = inputText;
+    lastQuestionRef.current = currentInput;
     setInputText('');
     setIsTyping(true);
 
@@ -376,6 +379,7 @@ const Chat: React.FC<ChatProps> = ({
         isOpen={isGraphOpen}
         onClose={() => setIsGraphOpen(false)}
         graph={lastResponseRef.current?.graph ?? null}
+        title={`3D Graph for: ${lastQuestionRef.current ?? 'query'}`}
       />
     )}
     </>

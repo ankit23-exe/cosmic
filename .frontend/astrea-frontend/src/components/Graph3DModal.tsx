@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -20,6 +20,7 @@ interface Graph3DModalProps {
   isOpen: boolean;
   onClose: () => void;
   graph: { nodes: GraphNode[]; edges: GraphEdge[] } | null;
+  title?: string;
 }
 
 const typeColor = (type?: string) => {
@@ -35,11 +36,13 @@ const typeColor = (type?: string) => {
   }
 };
 
-const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph }) => {
+const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph, title }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
+  const labelSpritesRef = useRef<THREE.Sprite[]>([]);
+  const [showLabels, setShowLabels] = useState(true);
 
   useEffect(() => {
     if (!isOpen || !mountRef.current) return;
@@ -78,8 +81,9 @@ const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph }) =
     const group = new THREE.Group();
     scene.add(group);
 
-    const nodes = graph?.nodes || [];
-    const edges = graph?.edges || [];
+  const nodes = graph?.nodes || [];
+  const edges = graph?.edges || [];
+  labelSpritesRef.current = [];
 
     // Position nodes on a sphere for a quick, clear layout
     const R = 12;
@@ -129,19 +133,81 @@ const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph }) =
         sprite.position.copy(pos.clone().add(new THREE.Vector3(0, 1.2, 0)));
         sprite.renderOrder = 999;
         group.add(sprite);
+        labelSpritesRef.current.push(sprite);
       }
     });
 
-    // Edges as lines
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.7 });
+    // Edges as cylinders with arrowheads and relation labels
     const edgeGroup = new THREE.Group();
     edges.forEach(e => {
       const a = nodeMap.get(e.source);
       const b = nodeMap.get(e.target);
       if (!a || !b) return;
-      const geom = new THREE.BufferGeometry().setFromPoints([a, b]);
-      const line = new THREE.Line(geom, lineMat);
-      edgeGroup.add(line);
+
+      const dir = new THREE.Vector3().subVectors(b, a);
+      const dist = dir.length();
+      const mid = new THREE.Vector3().addVectors(a, b).multiplyScalar(0.5);
+      const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+
+      // Cylinder for edge body
+      const cylGeo = new THREE.CylinderGeometry(0.06, 0.06, Math.max(0.1, dist), 8, 1, false);
+      const cylMat = new THREE.MeshStandardMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.8, roughness: 0.5, metalness: 0.1 });
+      const cyl = new THREE.Mesh(cylGeo, cylMat);
+      cyl.position.copy(mid);
+      cyl.quaternion.copy(q);
+      edgeGroup.add(cyl);
+
+      // Arrowhead toward target
+      const coneGeo = new THREE.ConeGeometry(0.14, 0.36, 8);
+      const coneMat = new THREE.MeshStandardMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.9, roughness: 0.45, metalness: 0.1 });
+      const cone = new THREE.Mesh(coneGeo, coneMat);
+      cone.position.copy(b.clone().add(dir.clone().normalize().multiplyScalar(-0.25)));
+      cone.quaternion.copy(q);
+      edgeGroup.add(cone);
+
+      // Relation label at midpoint slightly offset from the edge
+      const textRaw = e.label || (e.evidence && e.evidence.length ? e.evidence[0] : '');
+      if (textRaw) {
+        const text = textRaw.length > 28 ? textRaw.slice(0, 28) + '…' : textRaw;
+        const labelCanvas = document.createElement('canvas');
+        const ctx = labelCanvas.getContext('2d');
+        if (ctx) {
+          const fontSize = 22;
+          ctx.font = `${fontSize}px sans-serif`;
+          const textWidth = Math.min(ctx.measureText(text).width + 20, 280);
+          labelCanvas.width = Math.ceil(textWidth);
+          labelCanvas.height = Math.ceil(fontSize * 2);
+          const ctx2 = labelCanvas.getContext('2d')!;
+          ctx2.font = `${fontSize}px sans-serif`;
+          ctx2.fillStyle = 'rgba(0,0,0,0.75)';
+          ctx2.fillRect(0, 0, labelCanvas.width, labelCanvas.height);
+          ctx2.lineWidth = 4;
+          ctx2.strokeStyle = 'rgba(0,0,0,0.85)';
+          ctx2.strokeText(text, 10, fontSize + 3);
+          ctx2.fillStyle = '#ffffff';
+          ctx2.fillText(text, 10, fontSize + 3);
+          const texture = new THREE.CanvasTexture(labelCanvas);
+          texture.minFilter = THREE.LinearFilter;
+          const mat = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false });
+          const sprite = new THREE.Sprite(mat);
+          const sx = Math.max(2.6, Math.min(6.5, labelCanvas.width / 70));
+          const sy = Math.max(1.0, Math.min(2.4, labelCanvas.height / 70));
+          sprite.scale.set(sx, sy, 1);
+
+          // Offset label perpendicular to edge to avoid overlap with the cylinder
+          const up = new THREE.Vector3(0, 0, 1);
+          let n = dir.clone().normalize().cross(up);
+          if (n.length() < 0.001) {
+            n = dir.clone().normalize().cross(new THREE.Vector3(0, 1, 0));
+          }
+          n.normalize().multiplyScalar(0.6);
+          const labelPos = mid.clone().add(n);
+          sprite.position.copy(labelPos);
+          sprite.renderOrder = 1000;
+          edgeGroup.add(sprite);
+          labelSpritesRef.current.push(sprite);
+        }
+      }
     });
     scene.add(edgeGroup);
 
@@ -187,20 +253,29 @@ const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph }) =
       <div className="absolute inset-0" onClick={onClose} />
       <div className="relative z-10 w-[90vw] max-w-6xl h-[75vh] bg-black/70 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
         {/* Title bar for clear heading */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-black/80 to-transparent">
           <div className="flex items-center gap-3">
-            <h3 className="text-white/95 font-semibold tracking-wide">3D Graph</h3>
-            <span className="text-white/60 text-xs">{graph?.nodes?.length ?? 0} nodes • {graph?.edges?.length ?? 0} edges</span>
+            <h3 className="text-white/95 font-semibold tracking-wide truncate max-w-[60vw]" title={title || '3D Graph'}>{title || '3D Graph'}</h3>
+            <span className="text-white/70 text-xs whitespace-nowrap">{graph?.nodes?.length ?? 0} nodes • {graph?.edges?.length ?? 0} edges</span>
           </div>
-        </div>
-        {/* Close button stays clickable */}
-        <div className="absolute top-3 right-3 z-20">
-          <button
-            onClick={onClose}
-            className="px-3 py-1 rounded-md bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm hover:from-purple-600 hover:to-blue-600"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const next = !showLabels;
+                setShowLabels(next);
+                labelSpritesRef.current.forEach(s => (s.visible = next));
+              }}
+              className="px-3 py-1 rounded-md bg-white/10 text-white text-xs hover:bg-white/20 border border-white/10"
+            >
+              {showLabels ? 'Hide labels' : 'Show labels'}
+            </button>
+            <button
+              onClick={onClose}
+              className="px-3 py-1 rounded-md bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm hover:from-purple-600 hover:to-blue-600"
+            >
+              Close
+            </button>
+          </div>
         </div>
         <div ref={mountRef} className="w-full h-full" />
       </div>
