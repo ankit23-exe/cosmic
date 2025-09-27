@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChartBarIcon, ShareIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ShareIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const DataVisualizations: React.FC = () => {
   const [activeChart, setActiveChart] = useState('trends');

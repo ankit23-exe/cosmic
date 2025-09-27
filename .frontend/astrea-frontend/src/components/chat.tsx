@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Send, Bot, User } from 'lucide-react';
+import Graph3DModal from './Graph3DModal';
 
 interface Message {
   id: string;
@@ -36,6 +37,7 @@ const Chat: React.FC<ChatProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const hasAutoSentRef = useRef(false);
   const lastResponseRef = useRef<any>(null);
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
 
   // Remove the graph-derived "Links:" section from the answer text
   const sanitizeAnswer = (answer: string): string => {
@@ -204,7 +206,16 @@ const Chat: React.FC<ChatProps> = ({
     }
   };
 
+  const hasGraph = Boolean(
+    lastResponseRef.current &&
+    lastResponseRef.current.graph &&
+    Array.isArray(lastResponseRef.current.graph.nodes) &&
+    Array.isArray(lastResponseRef.current.graph.edges) &&
+    lastResponseRef.current.graph.nodes.length > 0
+  );
+
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 relative overflow-hidden">
       {/* Cosmic Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
@@ -310,6 +321,22 @@ const Chat: React.FC<ChatProps> = ({
           </div>
         </div>
 
+        {/* Graph CTA (appears when graph data is available) */}
+        {hasGraph && (
+          <div className="px-6 pt-2">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setIsGraphOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-sm shadow-lg hover:from-emerald-600 hover:to-cyan-600 transition"
+                >
+                  View 3D Graph
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Input Area */}
         <div className="p-6 border-t border-gray-700/50 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto">
@@ -344,6 +371,14 @@ const Chat: React.FC<ChatProps> = ({
         </div>
       </div>
     </div>
+    {hasGraph && (
+      <Graph3DModal
+        isOpen={isGraphOpen}
+        onClose={() => setIsGraphOpen(false)}
+        graph={lastResponseRef.current?.graph ?? null}
+      />
+    )}
+    </>
   );
 }
 
