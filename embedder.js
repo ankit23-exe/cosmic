@@ -9,6 +9,9 @@ import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { ChatOpenAI } from '@langchain/openai';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { PineconeStore } from '@langchain/pinecone';
+
+import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/hf';
+
 import neo4j from 'neo4j-driver';
 import fs from 'fs';
 import path from 'path';
@@ -337,11 +340,19 @@ async function buildAndIngestKGFromChunks(docs) {
   const driver = getNeo4jDriver();
   if (!driver) return;
 
+//gpt model 
+
   const model = new ChatOpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     model: 'gpt-4o-mini',
     temperature: 0,
+    configuration:{
+      baseURL:"https://openrouter.ai/api/v1",
+    }
   });
+
+//
+
 
   // Set up constraints/indexes (idempotent)
   await ensureNeo4jConstraints(driver);
