@@ -39,6 +39,7 @@ const Chat: React.FC<ChatProps> = ({
   const lastResponseRef = useRef<any>(null);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const lastQuestionRef = useRef<string | null>(null);
+  const [isNodeQuerying, setIsNodeQuerying] = useState(false);
 
   // Remove the graph-derived "Links:" section from the answer text
   const sanitizeAnswer = (answer: string): string => {
@@ -206,6 +207,53 @@ const Chat: React.FC<ChatProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  // When a node is clicked in the 3D graph, auto-ask the backend for details
+  const handleNodeClick = async (node: { id: string; label?: string; type?: string }) => {
+    if (isNodeQuerying) return;
+    setIsNodeQuerying(true);
+    const subject = node.label || node.id;
+    const followup = `Explain more about ${subject}.`;
+    // show the follow-up as a user message and update the title context
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: followup,
+      isUser: true,
+      timestamp: new Date(),
+    };
+    lastQuestionRef.current = followup;
+    setMessages(prev => [...prev, userMessage]);
+    setIsTyping(true);
+
+    try {
+      const res = await fetch('http://localhost:3000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: followup })
+      });
+      const data = await res.json();
+      lastResponseRef.current = data;
+      const aiText = sanitizeAnswer(data?.answer ?? 'No answer available.');
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        text: aiText,
+        isUser: false,
+        timestamp: new Date(),
+      }]);
+      // Keep modal open and it will pick up updated graph from lastResponseRef via props
+    } catch (err) {
+      console.error('Node follow-up error:', err);
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        text: `Sorry, I couldn’t fetch more about ${subject}.`,
+        isUser: false,
+        timestamp: new Date(),
+      }]);
+    } finally {
+      setIsNodeQuerying(false);
+      setIsTyping(false);
     }
   };
 
@@ -380,6 +428,7 @@ const Chat: React.FC<ChatProps> = ({
         onClose={() => setIsGraphOpen(false)}
         graph={lastResponseRef.current?.graph ?? null}
         title={`3D Graph for: ${lastQuestionRef.current ?? 'query'}`}
+        onNodeClick={handleNodeClick}
       />
     )}
     </>

@@ -21,6 +21,7 @@ interface Graph3DModalProps {
   onClose: () => void;
   graph: { nodes: GraphNode[]; edges: GraphEdge[] } | null;
   title?: string;
+  onNodeClick?: (node: GraphNode) => void;
 }
 
 const typeColor = (type?: string) => {
@@ -36,13 +37,16 @@ const typeColor = (type?: string) => {
   }
 };
 
-const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph, title }) => {
+const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph, title, onNodeClick }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const labelSpritesRef = useRef<THREE.Sprite[]>([]);
   const [showLabels, setShowLabels] = useState(true);
+  const clickableMeshesRef = useRef<THREE.Mesh[]>([]);
+  const raycasterRef = useRef(new THREE.Raycaster());
+  const mouseRef = useRef(new THREE.Vector2());
 
   useEffect(() => {
     if (!isOpen || !mountRef.current) return;
@@ -84,6 +88,7 @@ const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph, tit
   const nodes = graph?.nodes || [];
   const edges = graph?.edges || [];
   labelSpritesRef.current = [];
+  clickableMeshesRef.current = [];
 
     // Position nodes on a sphere for a quick, clear layout
     const R = 12;
@@ -98,9 +103,12 @@ const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph, tit
 
       const geom = new THREE.SphereGeometry(0.5 + (n.score ? Math.min(0.8, n.score * 0.8) : 0), 24, 24);
       const mat = new THREE.MeshStandardMaterial({ color: typeColor(n.type), emissive: 0x111111, roughness: 0.4, metalness: 0.1 });
-      const mesh = new THREE.Mesh(geom, mat);
+  const mesh = new THREE.Mesh(geom, mat);
       mesh.position.copy(pos);
+  // attach node data for interactions
+  (mesh as any).userData = { node: n };
       group.add(mesh);
+  clickableMeshesRef.current.push(mesh);
 
       // Optional: label as small sprite-like plane (simple, no font loaders)
       const labelCanvas = document.createElement('canvas');
@@ -231,6 +239,36 @@ const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph, tit
     };
     window.addEventListener('resize', onResize);
 
+    // Hover + click interactions
+    const handlePointerMove = (ev: MouseEvent) => {
+      if (!rendererRef.current) return;
+      const canvas = rendererRef.current.domElement;
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseRef.current.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+      raycasterRef.current.setFromCamera(mouseRef.current, camera);
+      const hits = raycasterRef.current.intersectObjects(clickableMeshesRef.current, false);
+      canvas.style.cursor = hits.length > 0 ? 'pointer' : 'grab';
+    };
+    const handleClick = (ev: MouseEvent) => {
+      if (!rendererRef.current || !onNodeClick) return;
+      const canvas = rendererRef.current.domElement;
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseRef.current.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+      raycasterRef.current.setFromCamera(mouseRef.current, camera);
+      const hits = raycasterRef.current.intersectObjects(clickableMeshesRef.current, false);
+      if (hits.length > 0) {
+        const obj = hits[0].object as any;
+        const node: GraphNode | undefined = obj?.userData?.node;
+        if (node) onNodeClick(node);
+      }
+    };
+    const canvas = renderer.domElement;
+    canvas.style.cursor = 'grab';
+    canvas.addEventListener('mousemove', handlePointerMove);
+    canvas.addEventListener('click', handleClick);
+
     return () => {
       window.removeEventListener('resize', onResize);
       cancelAnimationFrame(raf);
@@ -239,6 +277,10 @@ const Graph3DModal: React.FC<Graph3DModalProps> = ({ isOpen, onClose, graph, tit
       if (rendererRef.current?.domElement && rendererRef.current.domElement.parentElement) {
         rendererRef.current.domElement.parentElement.removeChild(rendererRef.current.domElement);
       }
+      try {
+        canvas.removeEventListener('mousemove', handlePointerMove);
+        canvas.removeEventListener('click', handleClick);
+      } catch {}
       scene.clear();
       sceneRef.current = null;
       rendererRef.current = null;

@@ -84,7 +84,7 @@ app.listen(PORT, () => {
 
 
 
-// 🚀 Telegram Bot Integration (POLLING MODE)
+//🚀 Telegram Bot Integration (POLLING MODE)
 if (process.env.TELEGRAM_BOT_TOKEN) {
     const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
