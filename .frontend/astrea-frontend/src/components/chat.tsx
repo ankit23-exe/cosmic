@@ -18,7 +18,7 @@ interface ChatProps {
 
 const Chat: React.FC<ChatProps> = ({
   onSendMessage,
-  initialMessage = "Hello! I'm ASTREA AI, your cosmic assistant. How can I help you explore the universe of knowledge today?",
+  initialMessage = "Hello! I'm Cosmic AI, your exploration assistant. How can I help you navigate the universe of knowledge today?",
 }: ChatProps) => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -56,9 +56,11 @@ const Chat: React.FC<ChatProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Auto-scroll only after more than the initial greeting message exists
   useEffect(() => {
+    if (messages.length <= 1) return; // avoid jumping on initial open
     scrollToBottom();
-  }, [messages, isTyping]);
+  }, [messages]);
 
   // If there's a query param ?q=..., auto-send it once on mount
   useEffect(() => {
@@ -267,13 +269,9 @@ const Chat: React.FC<ChatProps> = ({
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 relative overflow-hidden">
+  <div className="min-h-screen bg-grid relative overflow-hidden">
       {/* Cosmic Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none bg-[radial-gradient(circle_at_30%_30%,#1b1f23,transparent_60%)]" />
 
       {/* Stars Background */}
       <div className="absolute inset-0">
@@ -294,20 +292,18 @@ const Chat: React.FC<ChatProps> = ({
       {/* Main Container */}
       <div className="relative z-10 h-screen flex flex-col">
         {/* Header */}
-        <header className="p-6 border-b border-gray-700/50 backdrop-blur-sm">
+  <header className="p-6 border-b border-[color:var(--border-color)] bg-[color:var(--bg-alt)]/80 backdrop-blur-sm">
           <div className="flex items-center justify-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-[color:var(--bg-surface)] border border-[color:var(--accent)] shadow-sm">
+              <Bot className="w-5 h-5 text-[color:var(--accent)]" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              ASTREA AI
-            </h1>
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <h1 className="text-2xl font-semibold text-[color:var(--text-primary)] tracking-wide">Cosmic AI</h1>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
           </div>
         </header>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+  <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[color:var(--bg-root)]">
           <div className="max-w-4xl mx-auto space-y-6">
             {messages.map((message) => (
               <div
@@ -316,11 +312,7 @@ const Chat: React.FC<ChatProps> = ({
               >
                 <div className={`flex max-w-xs lg:max-w-md xl:max-w-lg ${message.isUser ? 'flex-row-reverse' : 'flex-row'} items-end space-x-3`}>
                   {/* Avatar */}
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.isUser 
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/25' 
-                      : 'bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25'
-                  }`}>
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center border ${message.isUser ? 'border-[color:var(--accent)] bg-[color:var(--bg-surface-alt)]' : 'border-[color:var(--border-color)] bg-[color:var(--bg-surface)]'} shadow` }>
                     {message.isUser ? (
                       <User className="w-4 h-4 text-white" />
                     ) : (
@@ -329,18 +321,7 @@ const Chat: React.FC<ChatProps> = ({
                   </div>
 
                   {/* Message Bubble */}
-                  <div
-                    className={`px-6 py-4 rounded-2xl backdrop-blur-sm border ${
-                      message.isUser
-                        ? 'bg-blue-600/20 border-blue-500/30 text-blue-100 shadow-lg shadow-blue-500/10'
-                        : 'bg-purple-600/20 border-purple-500/30 text-purple-100 shadow-lg shadow-purple-500/10'
-                    } transition-all duration-300 hover:scale-105`}
-                    style={{
-                      boxShadow: message.isUser 
-                        ? '0 0 20px rgba(59, 130, 246, 0.15)' 
-                        : '0 0 20px rgba(147, 51, 234, 0.15)'
-                    }}
-                  >
+                  <div className={`px-6 py-4 rounded-xl border transition-all duration-300 ${message.isUser ? 'bg-[color:var(--bg-surface-alt)] border-[color:var(--accent)] text-[color:var(--text-primary)] shadow-sm' : 'bg-[color:var(--bg-surface)] border-[color:var(--border-color)] text-[color:var(--text-secondary)]'} hover:border-[color:var(--accent-hover)]` }>
                     <p className="text-sm leading-relaxed">{message.text}</p>
                     <div className={`mt-2 text-xs opacity-60 ${message.isUser ? 'text-right' : 'text-left'}`}>
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -354,14 +335,14 @@ const Chat: React.FC<ChatProps> = ({
             {isTyping && (
               <div className="flex justify-start animate-fade-in">
                 <div className="flex items-end space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/25">
-                    <Bot className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[color:var(--bg-surface)] border border-[color:var(--border-color)] shadow-sm">
+                    <Bot className="w-4 h-4 text-[color:var(--text-secondary)]" />
                   </div>
-                  <div className="bg-purple-600/20 border border-purple-500/30 px-6 py-4 rounded-2xl backdrop-blur-sm">
+                  <div className="bg-[color:var(--bg-surface-alt)] border border-[color:var(--border-color)] px-6 py-4 rounded-2xl">
                     <div className="flex space-x-2">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-[color:var(--text-secondary)] rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-[color:var(--text-secondary)] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-[color:var(--text-secondary)] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
                   </div>
                 </div>
@@ -389,7 +370,7 @@ const Chat: React.FC<ChatProps> = ({
         )}
 
         {/* Input Area */}
-        <div className="p-6 border-t border-gray-700/50 backdrop-blur-sm">
+  <div className="p-6 border-t border-[color:var(--border-color)] bg-[color:var(--bg-alt)]/70 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto">
             <div className="relative flex items-center space-x-4">
               <div className="flex-1 relative">
@@ -400,20 +381,13 @@ const Chat: React.FC<ChatProps> = ({
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me anything…"
-                  className="w-full px-6 py-4 bg-gray-800/50 border border-gray-600/50 rounded-2xl text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 backdrop-blur-sm transition-all duration-300"
-                  style={{
-                    boxShadow: '0 0 20px rgba(147, 51, 234, 0.1)',
-                  }}
+                  className="neutral-input w-full px-6 py-4 placeholder-[color:var(--text-dim)]"
                 />
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               </div>
               <button
                 onClick={handleSendMessage}
                 disabled={!inputText.trim() || isTyping}
-                className="p-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl hover:from-purple-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg"
-                style={{
-                  boxShadow: '0 0 20px rgba(147, 51, 234, 0.3)',
-                }}
+                className="neutral-button p-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 <Send className="w-5 h-5" />
               </button>

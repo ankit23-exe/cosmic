@@ -156,10 +156,13 @@ export async function chattingGPT(question, sessionId = 'default') {
 
   // If no context found, return fallback message
   if (!context || context.trim().length === 0) {
-    const fallback = "I couldn’t find the details right now. Maybe not present in the document I Have. ";
+    const fallback = "I couldn’t find the details right now in the indexed corpus. You can try rephrasing or ask something related for more context.";
     history.push({ role: 'user', content: question });
     history.push({ role: 'assistant', content: fallback });
-    return fallback;
+    return {
+      answer: fallback,
+      graph: { nodes: [], edges: [] }
+    };
   }
 
   // Step 3: Use the original user question and found context for the final answer, with history
@@ -172,7 +175,18 @@ export async function chattingGPT(question, sessionId = 'default') {
     }
   });
   
-  const finalPrompt = `You are Astrea, the official AI assistant for NASA's Space Biology Knowledge Engine.Your goal is to help scientists, mission planners, and researchers explore NASA's bioscience publications efficiently.If the user greets, greet them warmly and ask how you can assist with space biology research. When a user asks a question:- Use the provided context (summarized publications, experiments, findings) to answer.  - If the context does not contain enough information, reply:I could not find sufficient information in the current dataset. Please refer to NASA's Open Science Data Repository for more details." Always keep answers: - Clear and concise ,Focused on the users query ,Structured with sections like 'Key Findings', 'Experiments', 'Missions', 'Links' when possible ,In the same language as the query if multilingual queries are supported. When relationships between experiments, organisms, and missions are available, highlight them clearly so they can be visualized in a knowledge graph. Context: ${context}`;
+  const finalPrompt = `You are Cosmic, the official AI assistant for NASA's Space Biology Intelligence Platform (formerly Astrea). Your goal is to help scientists, mission planners, and researchers explore NASA's bioscience publications efficiently. If the user greets, greet them warmly and ask how you can assist with space biology research.
+When a user asks a question:
+- Use ONLY the provided context (summarized publications, experiments, findings) to answer.
+- If the context does not contain enough information, reply: "I could not find sufficient information in the current dataset. Please refer to NASA's Open Science Data Repository for more details." (do not hallucinate)
+Always keep answers:
+- Clear and concise
+- Focused on the user's query
+- Structured when possible with sections like 'Key Findings', 'Experiments', 'Missions', 'Links'
+- In the same language as the query if multilingual queries are supported.
+When relationships between experiments, organisms, and missions are available, highlight them clearly so they can be visualized in a knowledge graph.
+Context:
+${context}`;
   
   const finalMessages = [
     { role: 'system', content: finalPrompt },

@@ -30,6 +30,14 @@ app.post('/chat', async (req, res) => {
   }
   try {
     const response = await chattingGPT(question);
+
+    // If legacy fallback returned a plain string (older behavior), normalize it
+    if (typeof response === 'string') {
+      return res.json({
+        answer: response,
+        graph: { nodes: [], edges: [] }
+      });
+    }
     
     // Format answer into sections if it's a text response
     let formattedAnswer = response.answer;

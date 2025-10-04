@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 const WhatsAppFloat: React.FC = () => {
   const shareOnWhatsApp = () => {
     const message = encodeURIComponent(
-      "Check out ASTREA - Space Biology Knowledge Engine! 🚀\nExploring NASA's Space Bioscience for the Next Era of Human Exploration\n" + 
+  "Check out Cosmic - Space Biology Intelligence Engine! 🚀\nExploring NASA's Space Bioscience for the Next Era of Human Exploration\n" + 
       window.location.href
     );
     window.open(`https://wa.me/?text=${message}`, '_blank');

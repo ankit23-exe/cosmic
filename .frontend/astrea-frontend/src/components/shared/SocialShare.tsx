@@ -10,7 +10,7 @@ interface SocialShareProps {
 
 const SocialShare: React.FC<SocialShareProps> = ({ 
   url = window.location.href,
-  title = "ASTREA - Space Biology Knowledge Engine",
+  title = "Cosmic - Space Biology Intelligence Engine",
   description = "Exploring NASA's Space Bioscience for the Next Era of Human Exploration"
 }) => {
   const [isOpen, setIsOpen] = useState(false);

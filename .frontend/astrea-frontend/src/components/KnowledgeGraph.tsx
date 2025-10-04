@@ -141,7 +141,7 @@ const KnowledgeGraph: React.FC = () => {
               className="flex items-center space-x-4"
             >
               <SocialShare 
-                title="ASTREA Knowledge Graph"
+                title="Cosmic Knowledge Graph"
                 description="Explore interconnected space biology research"
               />
             </motion.div>
@@ -209,7 +209,7 @@ const KnowledgeGraph: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 className="w-full mt-6 px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-teal-700 transition-all duration-200"
                 onClick={() => {
-                  const message = `Check out this insight from ASTREA Knowledge Graph: ${selectedNode ? selectedNode.label : 'Interactive research network visualization'}`;
+                  const message = `Check out this insight from Cosmic Knowledge Graph: ${selectedNode ? selectedNode.label : 'Interactive research network visualization'}`;
                   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + '\n' + window.location.href)}`;
                   window.open(whatsappUrl, '_blank');
                 }}

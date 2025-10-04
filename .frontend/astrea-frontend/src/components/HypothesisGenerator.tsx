@@ -48,7 +48,7 @@ const HypothesisGenerator: React.FC = () => {
   };
 
   const shareHypothesis = (hypothesis: Hypothesis) => {
-    const message = `AI-Generated Space Biology Hypothesis from ASTREA:\n\n"${hypothesis.title}"\n\n${hypothesis.description}\n\nConfidence: ${hypothesis.confidence}%`;
+  const message = `AI-Generated Space Biology Hypothesis from Cosmic:\n\n"${hypothesis.title}"\n\n${hypothesis.description}\n\nConfidence: ${hypothesis.confidence}%`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + '\n\n' + window.location.href)}`;
     window.open(whatsappUrl, '_blank');
   };

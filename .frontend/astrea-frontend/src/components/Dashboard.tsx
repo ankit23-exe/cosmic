@@ -14,28 +14,51 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+  <div className="relative min-h-screen overflow-hidden bg-[color:var(--bg-root)] text-[color:var(--text-primary)]">
       {/* Background Video */}
       <video
         autoPlay
         loop
         muted
         playsInline
-        className="fixed top-0 left-0 w-full h-full object-cover z-0 opacity-60 pointer-events-none"
-        src="/background-video.mp4"
-      />
+        preload="auto"
+        data-default-video="/bg-professional.mp4"
+        className="fixed top-0 left-0 w-full h-full object-cover z-0 opacity-40 pointer-events-none select-none"
+        onError={(e) => {
+          const el = e.currentTarget;
+          // Try alternate source once
+          if (!el.dataset.fallbackTried) {
+            el.dataset.fallbackTried = 'true';
+            el.src = '/bg-pro-alt.mp4';
+            el.load();
+            el.play().catch(()=>{});
+          } else {
+            el.style.display = 'none';
+            const existing = document.getElementById('video-fallback-bg');
+            if (!existing) {
+              const div = document.createElement('div');
+              div.id = 'video-fallback-bg';
+              div.style.position = 'fixed';
+              div.style.inset = '0';
+              div.style.background = 'radial-gradient(circle at 30% 40%, #1a1f24 0%, #0c0e11 70%)';
+              div.style.zIndex = '0';
+              document.body.appendChild(div);
+            }
+          }
+        }}
+      >
+        <source src="/bg-professional.mp4" type="video/mp4" />
+        <source src="/bg-pro-alt.mp4" type="video/mp4" />
+      </video>
+      <div className="fixed inset-0 z-0" style={{ background: 'var(--video-overlay)' }} />
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 z-10">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-              ASTREA
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-4">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-4 tracking-tight text-[color:var(--text-primary)]">Cosmic</h1>
+          <p className="text-xl md:text-2xl text-[color:var(--text-secondary)] mb-4">
             Space Biology Knowledge Engine
           </p>
-          <p className="text-lg text-gray-400 mb-12 max-w-3xl mx-auto">
+          <p className="text-lg text-[color:var(--text-dim)] mb-12 max-w-3xl mx-auto">
             Exploring NASA's Space Bioscience for the Next Era of Human Exploration
           </p>
           {/* Search Bar */}
@@ -49,12 +72,12 @@ const Dashboard: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search 600+ NASA Publications..."
-                className="w-full px-6 py-4 pl-14 text-lg bg-black/50 border-2 border-blue-500/30 rounded-full backdrop-blur-md focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/20 text-white placeholder-gray-400 transition-all duration-300"
+                className="neutral-input w-full px-6 py-4 pl-14 text-lg placeholder-[color:var(--text-dim)] focus:ring-0 focus:border-[color:var(--accent)]"
               />
               <MagnifyingGlassIcon className="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-8 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-8 py-2 neutral-button rounded-full font-medium shadow-sm"
               >
                 Search
               </button>
@@ -95,13 +118,13 @@ const Dashboard: React.FC = () => {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="relative p-6 bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md border border-white/10 rounded-xl hover:border-white/20 transition-all duration-300"
+                className="relative p-6 neutral-surface rounded-xl hover:border-[color:var(--accent-hover)] transition-all duration-300"
               >
-                <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-lg mb-4`}>
-                  <span className="text-2xl">{feature.icon}</span>
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg mb-4 bg-[color:var(--bg-surface-alt)] border border-[color:var(--border-color)] shadow-sm">
+                  <span className="text-2xl text-[color:var(--text-secondary)]">{feature.icon}</span>
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
+                <p className="text-[color:var(--text-dim)]">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -109,12 +132,10 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* Impact Explorer */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-black/50 to-black/30 backdrop-blur-md">
+  <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Impact Explorer
-            </h2>
+            <h2 className="text-4xl font-bold mb-6 tracking-tight text-[color:var(--text-primary)]">Impact Explorer</h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Discover how space biology research shapes Moon and Mars mission planning
             </p>
@@ -135,7 +156,7 @@ const Dashboard: React.FC = () => {
             ].map((section) => (
               <div
                 key={section.title}
-                className="bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-md border border-white/10 rounded-xl p-8"
+                className="neutral-surface rounded-xl p-8"
               >
                 <div className="flex items-center mb-6">
                   <span className="text-4xl mr-4">{section.icon}</span>
@@ -143,8 +164,8 @@ const Dashboard: React.FC = () => {
                 </div>
                 <ul className="space-y-3">
                   {section.items.map((item) => (
-                    <li key={item} className="flex items-center text-gray-300">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+                    <li key={item} className="flex items-center text-[color:var(--text-secondary)]">
+                      <div className="w-2 h-2 bg-[color:var(--accent-hover)] rounded-full mr-3"></div>
                       {item}
                     </li>
                   ))}
@@ -159,9 +180,7 @@ const Dashboard: React.FC = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
-              Knowledge Gaps
-            </h2>
+            <h2 className="text-4xl font-bold mb-6 tracking-tight text-[color:var(--text-primary)]">Knowledge Gaps</h2>
             <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
               Critical areas where more research is needed for successful space exploration
             </p>
@@ -174,9 +193,9 @@ const Dashboard: React.FC = () => {
               ].map((gap) => (
                 <div
                   key={gap}
-                  className="p-6 bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-500/30 rounded-xl backdrop-blur-md"
+                  className="p-6 neutral-surface rounded-xl"
                 >
-                  <p className="text-lg text-white font-medium">{gap}</p>
+                  <p className="text-lg text-[color:var(--text-secondary)] font-medium">{gap}</p>
                 </div>
               ))}
             </div>

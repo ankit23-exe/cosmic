@@ -29,7 +29,7 @@ const DataVisualizations: React.FC = () => {
 
   const shareVisualization = (chartType: string) => {
     const chart = chartData[chartType as keyof typeof chartData];
-    const message = `Check out this data visualization from ASTREA: "${chart.title}"`;
+  const message = `Check out this data visualization from Cosmic: "${chart.title}"`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + '\n' + window.location.href)}`;
     window.open(whatsappUrl, '_blank');
   };
