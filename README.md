@@ -15,9 +15,33 @@ A powerful web scraping tool that extracts content from web pages, chunks it, cr
 
 1. **Environment Variables**: Create a `.env` file in the root directory with:
    ```
-   GEMINI_API_KEY=your_gemini_api_key_here
-   PINECONE_INDEX_NAME=your_pinecone_index_name
-   PORT=8080
+   # ==== LLM / Embeddings ====
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+OPENAI_API_KEY=YOUR_OPENAI_KEY
+OPENAI_BASE_URL=https://api.openai.com/v1
+
+# ==== Hugging Face ====
+HUGGINGFACEHUB_API_KEY=YOUR_HF_API_KEY
+
+# ==== Vector Store ====
+PINECONE_API_KEY=YOUR_PINECONE_KEY
+PINECONE_ENVIRONMENT=us-east-1
+PINECONE_INDEX_NAME=cosmic
+
+# ==== Neo4j (Knowledge Graph) ====
+NEO4J_URI=neo4j+s://YOUR_NEO4J_INSTANCE.databases.neo4j.io
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=YOUR_NEO4J_PASSWORD
+NEO4J_DATABASE=neo4j
+
+# ==== Feature Flags ====
+BUILD_KG=true
+
+# ==== Server ====
+PORT=3000
+
+# ==== Telegram Bot ====
+TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
    ```
 
 2. **APIs Setup**:
