@@ -1,4 +1,4 @@
-# ASTREA Web Scraper
+# COSMIC Web Scraper
 
 A powerful web scraping tool that extracts content from web pages, chunks it, creates embeddings, and stores them in Pinecone DB for semantic search and retrieval.
 
