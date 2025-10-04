@@ -14,39 +14,27 @@ A powerful web scraping tool that extracts content from web pages, chunks it, cr
 ## Prerequisites
 
 1. **Environment Variables**: Create a `.env` file in the root directory with:
-   ```
-   # ==== LLM / Embeddings ====
+```
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 OPENAI_API_KEY=YOUR_OPENAI_KEY
 OPENAI_BASE_URL=https://api.openai.com/v1
-
-# ==== Hugging Face ====
-HUGGINGFACEHUB_API_KEY=YOUR_HF_API_KEY
-
-# ==== Vector Store ====
 PINECONE_API_KEY=YOUR_PINECONE_KEY
 PINECONE_ENVIRONMENT=us-east-1
 PINECONE_INDEX_NAME=cosmic
-
-# ==== Neo4j (Knowledge Graph) ====
 NEO4J_URI=neo4j+s://YOUR_NEO4J_INSTANCE.databases.neo4j.io
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=YOUR_NEO4J_PASSWORD
 NEO4J_DATABASE=neo4j
-
-# ==== Feature Flags ====
 BUILD_KG=true
-
-# ==== Server ====
 PORT=3000
-
-# ==== Telegram Bot ====
 TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
-   ```
+```
 
 2. **APIs Setup**:
    - Get a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
    - Set up a Pinecone account and create an index at [Pinecone](https://www.pinecone.io/)
+   -  - Set up a neo4j auro db account(https://neo4j.com/product/auradb/)
+   
 
 ## Installation
 
@@ -59,10 +47,8 @@ npm install
 
 ### 1. REST API Endpoints
 
-Start the server:
+Start the server for the frontend:
 ```bash
-npm start
-# or for development
 npm run dev
 ```
 
@@ -244,13 +230,6 @@ Each error provides detailed messages to help diagnose and resolve issues.
 4. **API quota exceeded**
    - Check your Gemini API usage limits
    - Verify your Pinecone plan limits
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Test your changes thoroughly
-4. Submit a pull request
 
 ## License
 
